@@ -9,6 +9,9 @@
     --color-brand-highlight-dark: rgb(130, 176, 224);
 
     --color-turbo: rgb(255, 149, 0);
+
+    --color-error-light: rgb(255, 110, 110);
+    --color-error: rgb(250, 34, 63);
 }
 
 button {
@@ -44,6 +47,41 @@ button:hover {
     background-color: var(--color-brand);
     color: white;
 }
+
+
+#error-message {
+    position: fixed;
+
+    bottom: 10px;
+    left: 10px;
+
+    padding: 20px 20px 0 20px;
+
+    border-radius: 10px;
+
+    background-color: var(--color-error);
+}
+
+.error-message-close {
+    width: 20px;
+    height: 20px;
+
+    margin-left: 10px;
+    padding: 0;
+
+    font-weight: 800;
+
+    background-color: transparent;
+}
+
+.error-message-close:hover {
+    background-color: var(--color-error-light);
+}
+
+#error-message h2 {
+    margin: 0 auto 0 0;
+}
+
 
 #preview {
     width: 100%;

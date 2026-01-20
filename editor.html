@@ -87,6 +87,14 @@
         </div>
     </div>
 
+    <div id="error-message" hidden>
+        <div style="display: flex;">
+            <h2></h2>
+            <button class="error-message-close" onclick="document.querySelector('#error-message').hidden = true;">&times;</button>
+        </div>
+        <p></p>
+    </div>
+
     <script src="files/js/scaffolding.js"></script>
     <script src="files/js/app.js"></script>
     <script type="module" src="files/js/codemirror.js"></script>

@@ -15,6 +15,17 @@ templates.sprite = `<div class="sprite"><p>&times;</p><p></p></div>`
 window.addEventListener("keydown", shiftCheck)
 window.addEventListener("keyup", shiftCheck)
 
+
+function showErrorMessage(title, message) {
+    let errorMessage = document.querySelector('#error-message')
+
+    errorMessage.getElementsByTagName('h2')[0].innerText = title
+    errorMessage.getElementsByTagName('p')[0].innerText = message
+
+    document.querySelector('#error-message').hidden = false
+}
+
+
 function shiftCheck(e) {
     if (e.shiftKey) {
         keys.shift = true
@@ -263,7 +274,7 @@ async function loadProjectFromFile(inputFile) {
         loadSprite(spriteList[spriteList.length - 1], false)
     }
     catch(e) {
-        alert("There was an error loading the project — " + e)
+        showErrorMessage("An error occurred in loading the project", e)
     }
 }
 
