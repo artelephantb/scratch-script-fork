@@ -816,18 +816,50 @@
         niceInputNames: ["shade"],
         type: "stack"
     },
-    // playDrumForBeats: {
-    //     opcode: "music_playDrumForBeats",
-    //     inputs: ["DRUM", "BEATS"],
-    //     dropdown: "block",
-    //     dropdownOpcode: ["music_menu_DRUM", null],
-    //     niceInputNames: ["drum", "beats"],
-    //     type: "stack"
-    // },
-    // restForBeats: {
-    //     opcode: "music_restForBeats",
-    //     inputs: ["BEATS"],
-    //     niceInputNames: ["beats"],
-    //     type: "stack"
-    // }
+
+    // MUSIC
+    playDrumForBeats: {
+        opcode: "music_playDrumForBeats",
+        inputs: ["DRUM", "BEATS"],
+        dropdown: "block",
+        dropdownOpcode: ["music_menu_DRUM", null],
+        niceInputNames: ["drum", "beats"],
+        type: "stack"
+    },
+    restForBeats: {
+        opcode: "music_restForBeats",
+        inputs: ["BEATS"],
+        niceInputNames: ["beats"],
+        type: "stack"
+    },
+    playNoteForBeats: {
+        opcode: "music_playNoteForBeats",
+        inputs: ["NOTE", "BEATS"],
+        niceInputNames: ["note", "beats"],
+        type: "stack"
+    },
+    setInstrument: {
+        opcode: "music_setInstrument",
+        inputs: ["INSTRUMENT"],
+        dropdown: "block",
+        dropdownOpcode: ["music_menu_INSTRUMENT", null],
+        niceInputNames: ["instrument"],
+        type: "stack"
+    },
+    setTempo: {
+        opcode: "music_setTempo",
+        inputs: ["TEMPO"],
+        niceInputNames: ["tempo"],
+        type: "stack"
+    },
+    changeTempo: {
+        opcode: "music_changeTempo",
+        inputs: ["TEMPO"],
+        niceInputNames: ["tempo"],
+        type: "stack"
+    },
+    getTempo: {
+        opcode: "music_getTempo",
+        type: "reporter",
+    }
 }

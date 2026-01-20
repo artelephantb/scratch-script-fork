@@ -151,5 +151,14 @@
         setpensize: 'set pen size to ()',
         setpenshade: 'change pen shade by ()',
         changepenshade: 'set pen shade to ()',
+
+        // MUSIC
+        playdrumforbeats: 'play drum ( v) for () beats',
+        restforbeats: 'rest for () beats',
+        playnoteforbeats: 'play note () for () beats',
+        setinstrument: 'set instrument to ( v)',
+        settempo: 'set tempo to ()',
+        changetempo: 'change tempo by ()',
+        gettempo: 'tempo'
     }
 }
