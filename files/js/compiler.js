@@ -22,11 +22,13 @@ function getParamsArray(params) {
     }
     let parenLevel = 0;
     let output = [];
-    let start = 0;
     let inString = false;
     // console.log(str);
+    let final = "";
     let i = 0;
-    for (char of str) {
+    while (i < str.length) {
+        char = str[i];
+
         if (!inString) {
             if (char == "(") {
                 parenLevel += 1;
@@ -35,16 +37,27 @@ function getParamsArray(params) {
                 parenLevel -= 1;
             }
         }
-        if (char == '"') {
+        if (char == "\\") {
+            let nextChar = str[i + 1];
+            if (nextChar == '"' | nextChar == "'" | nextChar == '\\') {
+                i += 1;
+                final += nextChar;
+            } else {
+                compileError("Invalid use of escape character '\\'");
+            }
+        } else if (char == '"' | char == "'") {
             inString = !inString;
+            final += char;
+        } else if (parenLevel == 0 && char == "," && !inString) {
+            output.push(final);
+            final = "";
+        } else {
+            final += char;
         }
-        if (parenLevel == 0 && char == "," && !inString) {
-            output.push(str.slice(start, i).trim());
-            start = i + 1;
-        }
+
         i += 1;
     }
-    output.push(str.slice(start, i).trim());
+    output.push(final);
 
     // console.log(output);
     return output; // Returns a list
@@ -56,14 +69,14 @@ function parseBlock(str) {
     // A term is either a literal value or a function name
     // A term is an Object
     str = str.trim();
-    if (str.startsWith('"')) {
+    if (str.startsWith('"') | str.startsWith("'")) {
         // String
         return str.slice(1, str.length - 1);
     }
     if (!isNaN(parseFloat(str))) {
         return parseFloat(str);
     }
-    if (isNaN(parseFloat(str)) && !str.startsWith('"')) {
+    if (isNaN(parseFloat(str)) && !(str.startsWith('"') | str.startsWith("'"))) {
         // if (!str.startsWith("$") /* || !str.startsWith("#") */) {
         if (!(str.startsWith("$") || str.startsWith("#") || str == "true" || str == "false")) {
             if (!str.includes("(")) {
