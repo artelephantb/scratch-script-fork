@@ -59,8 +59,8 @@ a:has(button.header-btn.left) {
 }
 
 #script-example img {
-    width: 35%;
-    height: 35%;
+    width: 25%;
+    height: 25%;
 }
 
 #try-button {
@@ -78,8 +78,13 @@ a:has(button.header-btn.left) {
 #try-button:hover {
     background-color: rgb(168, 232, 191);
     border: 4px solid rgb(115, 203, 134);
-    transition: 0.3s;
+
+    box-shadow: 0 0 10px rgb(168, 232, 191);
+
     scale: 1.4;
+    rotate: 2deg;
+
+    transition: 0.3s;
 }
 
 #try-container {
@@ -105,6 +110,7 @@ a:has(button.header-btn.left) {
 
 #docs-button:hover {
     background-color: rgb(222, 215, 162);
+    box-shadow: 0 0 10px rgb(234, 229, 194);
 }
 
 
@@ -121,6 +127,7 @@ a:has(button.header-btn.left) {
 
 #examples-button:hover {
     background-color: rgb(211, 162, 222);
+    box-shadow: 0 0 10px rgb(224, 194, 234);;
 }
 
 
