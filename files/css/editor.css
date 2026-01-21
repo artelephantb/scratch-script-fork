@@ -7,6 +7,7 @@
 
     --color-brand-highlight: rgb(170, 207, 247);
     --color-brand-highlight-dark: rgb(130, 176, 224);
+    --color-brand-highlight-very-dark: rgb(96, 141, 191);
 
     --color-turbo: rgb(255, 149, 0);
 
@@ -133,6 +134,8 @@ button:hover {
     margin-right: 5px;
     margin-bottom: 5px;
 
+    padding: 5px;
+
     background-color: var(--color-brand-highlight);
     border-radius: 5px;
 }
@@ -143,17 +146,34 @@ button:hover {
 }
 
 .sprite p {
-    margin: 5px;
+    margin: 0;
     padding: 2px;
 }
 
-.sprite p:hover {
+.sprite:hover {
     background-color: var(--color-brand-highlight-dark);
     border-radius: 5px;
 }
 
-.sprite.selected p:hover {
-    background-color: var(--color-brand-dark);
+.sprite .delete {
+    text-align: center;
+
+    margin-right: 2px;
+    width: 20px;
+
+    border-radius: 5px;
+}
+
+.sprite .delete:hover {
+    background-color: var(--color-brand-highlight-very-dark);
+}
+
+.sprite.selected:hover {
+    background-color: var(--color-brand);
+}
+
+.sprite.selected .delete:hover {
+    background-color: var(--color-brand-very-dark);
 }
 
 #buttons {

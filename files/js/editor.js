@@ -10,7 +10,7 @@ let currentTab = 'code';
 
 templates.costume = `<tr><td style="padding: 5px" title="Remove">X</td><td><img style="width: 60px"></td><td class="name-box-costume">`
 templates.sound = `<tr><td style="padding: 5px" title="Remove">X</td><td><audio controls></audio></td><td class="name-box-sound">`
-templates.sprite = `<div class="sprite"><p>&times;</p><p></p></div>`
+templates.sprite = `<div class="sprite"><p class="delete">&times;</p><p></p></div>`
 
 window.addEventListener("keydown", shiftCheck)
 window.addEventListener("keyup", shiftCheck)
@@ -137,10 +137,13 @@ function removeSound(num) {
 
 function removeSprite(spriteName) {
     console.log(spriteName)
+
     delete assets.sprites[spriteName]
     delete codeList[spriteName]
+
     spriteList.splice(spriteList.indexOf(spriteName), 1)
     document.querySelector(`#sprites div p[data-sprite-name="${spriteName}"]`).parentNode.remove()
+
     loadSprite(spriteList[spriteList.length - 1])
 }
 
@@ -198,14 +201,16 @@ async function decodeSprite(zip, sprite) {
     assets.sprites[sprite] = {}
     assets.sprites[sprite].costumeList = []
     assets.sprites[sprite].soundList = []
+
     let spriteCode = await zip.file("sprites/" + sprite + "_code.txt").async("string")
     console.log(sprite, spriteCode)
     codeList[sprite] = spriteCode
     spriteList.push(sprite)
+
     let spriteCostumes = spriteFile.costumeList
     let spriteSounds = spriteFile.soundList
 
-    //costumes
+    // Costumes
     for (let costume of spriteCostumes) {
         // alert(`Sprite: ${getSpriteName(sprite)}, Costume: ${costume.name}`)
         assets.list[costume.hash] = await zip.file("assets/" + costume.hash).async("blob")//"arraybuffer")
@@ -223,7 +228,7 @@ async function decodeSprite(zip, sprite) {
         })
     }
     
-    //sounds
+    // Sounds
     for (let sound of spriteSounds) {
         // alert(`Sprite: ${getSpriteName(sprite)}, Costume: ${sound.name}`)
         assets.list[sound.hash] = await zip.file("assets/" + sound.hash).async("blob")//"arraybuffer")
@@ -244,6 +249,7 @@ async function decodeSprite(zip, sprite) {
     spriteElement.children[1].dataset.spriteName = sprite
     spriteElement.children[1].setAttribute("onclick", `loadSprite('${sprite}')`)
     spriteElement.children[1].innerText = getSpriteName(sprite, true)
+
     if (sprite == "stage") {
         spriteElement.children[0].remove()
     }
@@ -389,7 +395,7 @@ async function saveEditorStateToFile() {
 }
 
 function newSprite() {
-    let name = prompt("Sprite name?")
+    let name = prompt("What is this sprite's name?")
     let invalidNames = ["stage", "_myself_", "_random_", "_edge_", "_stage_"]
     let valid = false
     if (name) {
@@ -403,31 +409,31 @@ function newSprite() {
                 alert(`There is already a sprite named "${name}"`)
             }
             if (!valid) {
-                name = prompt("Sprite name?")
+                name = prompt("What is this sprite's name?")
             }
             if (!name) {
                 return
             }
         }
-        let newSpriteName = Base64.encode(name)
-        spriteList.push(newSpriteName)
-        assets.sprites[newSpriteName] = {}
-        assets.sprites[newSpriteName].costumeList = []
-        assets.sprites[newSpriteName].soundList = []
+        let encodedSpriteName = Base64.encode(name)
+        spriteList.push(encodedSpriteName)
+        assets.sprites[encodedSpriteName] = {}
+        assets.sprites[encodedSpriteName].costumeList = []
+        assets.sprites[encodedSpriteName].soundList = []
 
 
         let spriteElement = htmlToNode(templates.sprite)
-        spriteElement.children[0].addEventListener("click", function() {confirm("Are you sure you want to delete this sprite?") ? removeSprite(newSpriteName): null})
-        spriteElement.children[1].dataset.spriteName = newSpriteName
-        spriteElement.children[1].setAttribute("onclick", `loadSprite('${newSpriteName}')`)
-        spriteElement.children[1].innerText = getSpriteName(newSpriteName, true)
+        spriteElement.children[0].addEventListener("click", function() {confirm("Are you sure you want to delete this sprite?") ? removeSprite(encodedSpriteName): null})
+        spriteElement.children[1].dataset.spriteName = encodedSpriteName
+        spriteElement.children[1].setAttribute("onclick", `loadSprite('${encodedSpriteName}')`)
+        spriteElement.children[1].innerText = getSpriteName(encodedSpriteName, true)
 
         document.getElementById("sprites").appendChild(spriteElement)
 
 
-        codeList[newSpriteName] = ""
+        codeList[encodedSpriteName] = ""
 
-        loadSprite(newSpriteName)
+        loadSprite(encodedSpriteName)
     } else {
         return
     }
