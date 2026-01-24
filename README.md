@@ -1,4 +1,5 @@
-# scratchscript
+<img src="./files/images/logo.png" width="600px"/>
+
 A text based language with JavaScript like syntax that compiles to Scratch
 
 <h2>Syntax Guide</h2>
