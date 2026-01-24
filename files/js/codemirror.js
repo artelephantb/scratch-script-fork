@@ -1,7 +1,7 @@
-import {basicSetup, EditorView} from "./CodeMirror/codemirror.js"//"https://codemirror.net/try/mods/codemirror.js"
-import {autocompletion} from "./CodeMirror/@codemirror-autocomplete.js"//"https://codemirror.net/try/mods/@codemirror-autocomplete.js"
-import {keymap} from "./CodeMirror/@codemirror-view.js"//"https://codemirror.net/try/mods/@codemirror-view.js";
-import {acceptCompletion} from "./CodeMirror/@codemirror-autocomplete.js"//"https://codemirror.net/try/mods/@codemirror-autocomplete.js"
+import {basicSetup, EditorView} from "./CodeMirror/codemirror.js" //"https://codemirror.net/try/mods/codemirror.js"
+import {autocompletion} from "./CodeMirror/@codemirror-autocomplete.js" //"https://codemirror.net/try/mods/@codemirror-autocomplete.js"
+import {keymap} from "./CodeMirror/@codemirror-view.js" //"https://codemirror.net/try/mods/@codemirror-view.js";
+import {acceptCompletion} from "./CodeMirror/@codemirror-autocomplete.js" //"https://codemirror.net/try/mods/@codemirror-autocomplete.js"
 import {indentWithTab} from "./CodeMirror/@codemirror-commands.js"
 import {indentUnit} from "./CodeMirror/@codemirror-language.js";
 window.addEventListener("load", getData)
