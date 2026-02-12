@@ -218,263 +218,6 @@ let lists;
 let broadcasts;
 let lineNum;
 
-function compileBlock(code, parent, nestingLevel) {
-    // console.log("linestr", lineString)
-    // if (lineString.startsWith("//") || lineString == "") {
-    //     return;
-    // }
-    blockID += 1;
-    let myID = blockID;
-    // let parsedCode = parse(lineString);
-    let parsedCode = code;
-
-    let block = {};
-
-    // if (parsedCode[0].startsWith("$")) {
-    //     console.log("variable get")
-    //     let varName = parsedCode[0].slice(1)
-    //     if (varName == "") {
-    //         compileError("Variable name is blank")
-    //     }
-    //     block = [12, varName, variables[varName].id]
-    // } else {
-
-    let funcName = parsedCode.shift();
-    console.log("funcname", funcName);
-    let params = parsedCode;
-    console.log("inputs", params);
-    console.log("id", myID);
-
-    if (!funcName) {
-        compileError("Function name is undefined");
-    }
-    if (!blockData[funcName]) {
-        compileError(`There is no function called '${funcName}'`);
-    }
-
-    block.next = null;
-    block.shadow = false;
-    block.fields = {};
-    block.inputs = {};
-    block.topLevel = false;
-    block.nestingLevel = nestingLevel;
-    block.opcode = blockData[funcName].opcode;
-    if (firstBlockInScript) {
-        block.x = 0;
-        block.y = blockY;
-        block.parent = null;
-        block.topLevel = true;
-        firstBlockInScript = false;
-    } else {
-        block.parent = parent.toString();
-    }
-
-    if (blockData[funcName].type == "stack") {
-        blockY += 70;
-    }
-
-    // let doNormal = false;
-    // dropdownBlock: if (blockData[funcName].dropdown == "block") {
-    //     let dropBlockID = (blockID + 1).toString();
-    //     let dropBlock = {
-    //         parent: myID.toString(),
-    //         next: null,
-    //         inputs: {},
-    //         fields: {},
-    //         shadow: true,
-    //     };
-
-    //     for (let [i, param] of params.entries()) {
-    //         let item = blockData[funcName].dropdownOpcode[i];
-    //         if (item != null) {
-    //             console.log("dropblock", item, param);
-    //             if (typeof param == "object") {
-    //                 console.log("canceling...", param);
-    //                 block.inputs = {};
-    //                 doNormal = true;
-    //                 break dropdownBlock;
-    //             }
-    //             dropBlock.opcode = item;
-    //             dropBlock.fields[blockData[funcName].inputs[i]] = [param, null];
-    //             block.inputs[blockData[funcName].inputs[i]] = [1, dropBlockID];
-    //         } else {
-    //             block.inputs[blockData[funcName].inputs[i]] = [1, [10, param]];
-    //         }
-    //     }
-
-    //     console.log(dropBlock);
-    //     blockList[dropBlockID] = dropBlock;
-    //     blockID += 1;
-    // } else {
-    //     doNormal = true;
-    // }
-    let doNormal = true;
-
-    if (doNormal) {
-        for (let [i, param] of params.entries()) {
-            // Hamdle putting in parameters
-            console.log("param", i, param);
-            if (typeof param == "object") {
-                // Another block
-                block.inputs[blockData[funcName].inputs[i]] = [3, (blockID + 1).toString()]; // If the input is a block
-                // if (block.type != "boolean" && !funcName.startsWith("if")) {
-                //     block.inputs[blockData[funcName].inputs[i]][2] = [10, ""];
-                // }
-                compileBlock(param, myID);
-            } else {
-                dropBlockIf: if (blockData[funcName].dropdown == "block") {
-                    let dropBlockID = (blockID + 1).toString();
-                    let dropBlock = {
-                        parent: myID.toString(),
-                        next: null,
-                        inputs: {},
-                        fields: {},
-                        shadow: true,
-                    };
-                    let item = blockData[funcName].dropdownOpcode[i];
-                    if (item != null) {
-                        console.log("dropblock", item, param);
-                        if (typeof param == "object") {
-                            console.log("canceling...", param);
-                            block.inputs[i] = {};
-                            doNormal = true;
-                            break dropBlockIf;
-                        }
-                        dropBlock.opcode = item;
-                        dropBlock.fields[blockData[funcName].inputs[i]] = [param, null];
-                        block.inputs[blockData[funcName].inputs[i]] = [1, dropBlockID];
-                        blockList[dropBlockID] = dropBlock;
-                        blockID += 1;
-                        continue;
-                    }
-                }
-
-                if (blockData[funcName].dropdownInputs) {
-                    // block contains a square dropdown
-                    if (blockData[funcName].dropdownInputs[i] != null) {
-                        // only replace input if it is a dropdown
-                        block.fields[blockData[funcName].inputs[i]] = [param, null]; // second param has to be null for some reason
-
-                        // variables
-                        // if (funcName == "setVar" || funcName == "changeVar") {
-                        if (blockData[funcName].category) {
-                            if (blockData[funcName].category == "variable") {
-                                let varID;
-                                if (variables[param]) {
-                                    varID = variables[param].id;
-                                } else {
-                                    varID = Math.round(Math.random() * 1e15).toString();
-                                    variables[param] = {};
-                                    variables[param].id = varID;
-                                    variables[param].value = 0;
-                                    if (spriteBeingCompiled == "stage") {
-                                        variables[param].global = true;
-                                    }
-                                }
-                                block.fields[blockData[funcName].inputs[i]][1] = varID;
-                            }
-                            // }
-
-                            // lists
-                            // if (blockData[funcName].category) {
-                            if (blockData[funcName].category == "list") {
-                                console.log("found list", param);
-                                let listID;
-                                if (lists[param]) {
-                                    listID = lists[param].id;
-                                } else {
-                                    listID = Math.round(Math.random() * 1e15).toString();
-                                    lists[param] = {};
-                                    lists[param].id = listID;
-                                    lists[param].value = [];
-                                    if (spriteBeingCompiled == "stage") {
-                                        lists[param].global = true;
-                                    }
-                                }
-                                block.fields[blockData[funcName].inputs[i]][1] = listID;
-                            }
-                        }
-
-                        // broadcast received block - only one with a dropdown
-                        if (blockData[funcName].opcode == "event_whenbroadcastreceived") {
-                            console.log("found broadcast", param);
-                            let brID;
-                            if (broadcasts[param]) {
-                                brID = broadcasts[param].id;
-                            } else {
-                                brID = Math.round(Math.random() * 1e15).toString();
-                                broadcasts[param] = {};
-                                broadcasts[param].id = brID;
-                            }
-                            block.fields[blockData[funcName].inputs[i]][1] = brID;
-                        }
-
-                        continue;
-                    }
-                }
-                if (param.toString().startsWith(variableStartThing)) {
-                    // variable
-                    let varName = param.toString().slice(variableStartThing.length + 1);
-                    console.log("varname", varName);
-                    if (varName == "") {
-                        compileError("Variable name is blank");
-                    }
-                    if (!variables[varName]) {
-                        compileError(`There is no variable named '${varName}'`);
-                    }
-                    block.inputs[blockData[funcName].inputs[i]] = [3, [12, varName, variables[varName].id]];
-                } else {
-                    if (param.toString().startsWith(listStartThing)) {
-                        let listName = param.toString().slice(listStartThing.length + 1);
-                        console.log("listname", listName);
-                        if (listName == "") {
-                            compileError("List name is blank");
-                        }
-                        if (!lists[listName]) {
-                            compileError(`There is no list named '${listName}'`);
-                        }
-                        block.inputs[blockData[funcName].inputs[i]] = [3, [13, listName, lists[listName].id]];
-                    } else {
-                        if (funcName.startsWith("broadcast")) {
-                            console.log("found broadcast block");
-                            let brID;
-                            if (broadcasts[param]) {
-                                brID = broadcasts[param].id;
-                            } else {
-                                brID = Math.round(Math.random() * 1e15).toString();
-                                broadcasts[param] = {};
-                                broadcasts[param].id = brID;
-                            }
-                            block.inputs[blockData[funcName].inputs[i]] = [1, [11, param.toString(), brID]];
-                        } else {
-                            block.inputs[blockData[funcName].inputs[i]] = [1, [10, param]]; // regular string or number
-                        }
-                    }
-                }
-
-                if (funcName.toLowerCase().includes("color")) {
-                    // special case color inputs
-                    if (param.toString().startsWith("#")) {
-                        console.log("making color input");
-                        block.inputs[blockData[funcName].inputs[i]][1][0] = 9; // type 9 is color
-                    }
-                }
-            }
-            console.log("current inputs", block.inputs);
-        }
-        if (params && blockData[funcName].inputs) {
-            let got = params.length;
-            let want = blockData[funcName].inputs.length;
-            if (got != want) {
-                compileError(`Got ${got} input${got == 1 ? "" : "s"}, expected ${want} input${want == 1 ? "" : "s"}`);
-            }
-        }
-    }
-    // }
-
-    // block.next = blockID + 1
-    blockList[myID.toString()] = block;
-}
 
 const nestingType = {
     REPEAT: "repeat",
@@ -591,25 +334,71 @@ function clearVariablesAndLists(keepGlobal) {
     }
 }
 
+function compileBlock(block) {
+    if (block.type == "ExpressionStatement") {
+        if (block.expression.type == "CallExpression") {
+            console.log(block.expression.callee.name);
+            console.log(block.expression.arguments);
+        }
+    } else {
+        console.log(block);
+    }
+}
+
 function compileSprite(sprite) {
     spriteBeingCompiled = sprite;
+    blockList = {}
 
-    let codeLines = codeList[sprite].replaceAll("\r", "").split("\n");
-    codeLines = handleSpecial(codeLines); // Handles forever loops
-    let currentLine = 0;
+    let spriteCode = codeList[sprite];
+
     blockY = 0;
     firstBlockInScript = true;
     scriptBlockCount = 0;
-    blockList = {};
-    // variables = {};
-    // lists = {};
-    clearVariablesAndLists(true);
-    lineNum = 0;
-    let state = { currentLine: currentLine, nestingList: [] };
 
-    while (state.currentLine < codeLines.length) {
-        compileStatement(state, codeLines);
-    }
+    clearVariablesAndLists(true);
+
+    let state = { nestingList: [] };
+    //while (state.currentLine < codeLines.length) {
+    //    compileStatement(state, codeLines);
+    //}
+
+    let parsedCode = acorn.parse(spriteCode, { ecmaVersion: 2020 });
+    let parsedCodeBody = parsedCode.body;
+
+    parsedCodeBody.forEach(block => {
+        compileBlock(block);
+    });
+
+    /*blockList[3] = {
+        "opcode": "looks_sayforsecs",
+        "next": null,
+        "parent": null,
+        "inputs": {
+            "MESSAGE": [
+                1,
+                [
+                    10,
+                    "Hello!"
+                ]
+            ],
+            "SECS": [
+                1,
+                [
+                    4,
+                    "2"
+                ]
+            ]
+        },
+        "fields": {},
+        "shadow": false,
+        "topLevel": true,
+        "x": 449,
+        "y": 289
+    };*/
+    console.log(blockList);
+
+    
+
     blockID += 2;
     let newSprite = {
         isStage: false,
