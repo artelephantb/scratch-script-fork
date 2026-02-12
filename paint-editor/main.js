@@ -36,6 +36,15 @@ function onMouseMove(event) {
 }
 
 
+function onWindowResize() {
+	paintCanvas.width = window.innerWidth;
+	paintCanvas.height = window.innerHeight;
+}
+
+window.addEventListener("resize", onWindowResize);
+onWindowResize();
+
+
 paintCanvas.onmousedown = onMouseDown;
 document.addEventListener("mouseup", onMouseUp);
 
