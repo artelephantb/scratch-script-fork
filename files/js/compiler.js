@@ -334,14 +334,70 @@ function clearVariablesAndLists(keepGlobal) {
     }
 }
 
-function compileBlock(block) {
-    if (block.type == "ExpressionStatement") {
-        if (block.expression.type == "CallExpression") {
-            console.log(block.expression.callee.name);
-            console.log(block.expression.arguments);
+function compileCallExpression(expression) {
+    let funcName = expression.callee.name;
+
+    let blockMapData = blockData[funcName];
+    if (!blockMapData) compileError(`There is no function called '${funcName}'`);
+
+    let blockMapInputs = blockMapData.inputs;
+    let inputs = {}
+    for (let [index, argument] of expression.arguments.entries()) {
+        let argumentType
+        switch (typeof(argument.value)) {
+            case 'string':
+                argumentType = 10
+                break;
+            case 'number':
+                argumentType = 4
+                break;
+            default:
+                compileError(`Invalid argument: '${argument.value}'`)
         }
-    } else {
-        console.log(block);
+
+        inputs[blockMapInputs[index]] = [
+            1,
+            [
+                argumentType,
+                argument.value.toString()
+            ]
+        ];
+    }
+
+    let block = {
+        opcode: blockMapData.opcode,
+        next: null,
+        parent: null,
+        inputs: inputs,
+        fields: {},
+        shadow: false,
+        topLevel: true,
+        x: 0,
+        y: 0
+    };
+
+    return block;
+}
+
+function compileFunctionDeclaration(expression) {}
+
+function compileExpressionStatement(expression) {
+    switch (expression.type) {
+        case "CallExpression":
+            return compileCallExpression(expression);
+        default:
+            console.log(expression.type);
+    }
+}
+
+function compileBlock(expression) {
+    switch (expression.type) {
+        case "ExpressionStatement":
+            return compileExpressionStatement(expression.expression);
+        case "FunctionDeclaration":
+            return compileFunctionDeclaration(expression.expression);
+        default:
+            console.log(expression);
     }
 }
 
@@ -357,44 +413,14 @@ function compileSprite(sprite) {
 
     clearVariablesAndLists(true);
 
-    let state = { nestingList: [] };
-    //while (state.currentLine < codeLines.length) {
-    //    compileStatement(state, codeLines);
-    //}
-
     let parsedCode = acorn.parse(spriteCode, { ecmaVersion: 2020 });
     let parsedCodeBody = parsedCode.body;
 
     parsedCodeBody.forEach(block => {
-        compileBlock(block);
+        let blockID = Math.round(Math.random() * 1e15).toString();
+        blockList[blockID] = compileBlock(block);
     });
 
-    /*blockList[3] = {
-        "opcode": "looks_sayforsecs",
-        "next": null,
-        "parent": null,
-        "inputs": {
-            "MESSAGE": [
-                1,
-                [
-                    10,
-                    "Hello!"
-                ]
-            ],
-            "SECS": [
-                1,
-                [
-                    4,
-                    "2"
-                ]
-            ]
-        },
-        "fields": {},
-        "shadow": false,
-        "topLevel": true,
-        "x": 449,
-        "y": 289
-    };*/
     console.log(blockList);
 
     
