@@ -334,21 +334,19 @@ function clearVariablesAndLists(keepGlobal) {
     }
 }
 
-function compileCallExpression(expression) {
-    let funcName = expression.callee.name;
-
+function compileCallExpression(funcName, parameters) {
     let blockMapData = blockData[funcName];
     if (!blockMapData) compileError(`There is no function called '${funcName}'`);
 
     let blockMapInputs = blockMapData.inputs;
     let inputs = {}
-    for (let [index, argument] of expression.arguments.entries()) {
+    for (let [index, argument] of parameters) {
         let argumentType
         switch (typeof(argument.value)) {
-            case 'string':
+            case "string":
                 argumentType = 10
                 break;
-            case 'number':
+            case "number":
                 argumentType = 4
                 break;
             default:
@@ -379,15 +377,36 @@ function compileCallExpression(expression) {
     return block;
 }
 
-function compileFunctionDeclaration(expression) {}
-
-function compileExpressionStatement(expression) {
-    switch (expression.type) {
+function compileExpressionStatement(innerExpression) {
+    switch (innerExpression.type) {
         case "CallExpression":
-            return compileCallExpression(expression);
+            return compileCallExpression(innerExpression.callee.name, innerExpression.arguments.entries());
         default:
-            console.log(expression.type);
+            console.log(innerExpression.type);
     }
+}
+
+function compileFunctionDeclaration(topExpression) {
+    if (!blockData[topExpression.id.name]) {
+        console.log("Custom block found");
+        return [];
+    }
+
+    let body = [];
+    console.log(topExpression)
+
+    body.push(compileCallExpression(topExpression.id.name, topExpression.params.entries()));
+
+    topExpression.body.body.forEach(expression => {
+        switch (expression.type) {
+            case "ExpressionStatement":
+                body.push(compileExpressionStatement(expression.expression));
+            default:
+                console.log(expression.type);
+        }
+    });
+
+    return body;
 }
 
 function compileBlock(expression) {
@@ -395,7 +414,7 @@ function compileBlock(expression) {
         case "ExpressionStatement":
             return compileExpressionStatement(expression.expression);
         case "FunctionDeclaration":
-            return compileFunctionDeclaration(expression.expression);
+            return compileFunctionDeclaration(expression);
         default:
             console.log(expression);
     }
@@ -417,8 +436,13 @@ function compileSprite(sprite) {
     let parsedCodeBody = parsedCode.body;
 
     parsedCodeBody.forEach(block => {
-        let blockID = Math.round(Math.random() * 1e15).toString();
-        blockList[blockID] = compileBlock(block);
+        let compiledBlocks = compileBlock(block);
+        if (compiledBlocks.constructor.name == "Object") compiledBlocks = [compiledBlocks];
+
+        compiledBlocks.forEach(block => {
+            let blockID = Math.round(Math.random() * 1e15).toString();
+            blockList[blockID] = block;
+        });
     });
 
     console.log(blockList);
