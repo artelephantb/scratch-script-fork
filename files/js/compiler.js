@@ -1,3 +1,7 @@
+function generateBlockName() {
+    return Math.round(Math.random() * 1e15).toString();
+}
+
 function getVariables() {
     let v = {};
     for (let key of Object.keys(variables)) {
@@ -84,7 +88,7 @@ function getSounds(sprite) {
 }
 
 function compileError(err) {
-    throw { name: "CompileError", message: `CompileError on line ${lineNum} in sprite ${getSpriteName(spriteBeingCompiled, true)} — ${err}` };
+    throw { name: "CompileError", message: `CompileError on line ${'${lineNum}'} in sprite ${getSpriteName(spriteBeingCompiled, true)} — ${err}` };
 }
 
 function clearVariablesAndLists(keepGlobal) {
@@ -105,7 +109,7 @@ function clearVariablesAndLists(keepGlobal) {
     }
 }
 
-function compileCallExpression(funcName, parameters) {
+function compileCallExpression(funcName, parameters, parent=null, next=null, x=0, y=0) {
     let blockMapData = blockData[funcName];
     if (!blockMapData) compileError(`There is no function called '${funcName}'`);
 
@@ -135,23 +139,23 @@ function compileCallExpression(funcName, parameters) {
 
     let block = {
         opcode: blockMapData.opcode,
-        next: null,
-        parent: null,
+        next: next,
+        parent: parent,
         inputs: inputs,
         fields: {},
         shadow: false,
-        topLevel: true,
-        x: 0,
-        y: 0
+        topLevel: parent == null,
+        x: x,
+        y: y
     };
 
     return block;
 }
 
-function compileExpressionStatement(innerExpression) {
+function compileExpressionStatement(innerExpression, parent=null, next=null, x=0, y=0) {
     switch (innerExpression.type) {
         case "CallExpression":
-            return compileCallExpression(innerExpression.callee.name, innerExpression.arguments.entries());
+            return compileCallExpression(innerExpression.callee.name, innerExpression.arguments.entries(), parent=parent, next=next, x=x, y=y);
         default:
             console.log(innerExpression.type);
     }
@@ -160,22 +164,35 @@ function compileExpressionStatement(innerExpression) {
 function compileFunctionDeclaration(topExpression) {
     if (!blockData[topExpression.id.name]) {
         console.log("Custom block found");
-        return [];
+        return {};
     }
 
-    let body = [];
+    let body = {};
     console.log(topExpression)
 
-    body.push(compileCallExpression(topExpression.id.name, topExpression.params.entries()));
+    let parentName = generateBlockName();
+    let nextName = generateBlockName();
 
-    topExpression.body.body.forEach(expression => {
+    body[parentName] = compileCallExpression(topExpression.id.name, topExpression.params.entries(), parent=null, next=nextName);
+
+    let blockCount = topExpression.body.body.length;
+
+    for (let [index, expression] of topExpression.body.body.entries()) {
         switch (expression.type) {
             case "ExpressionStatement":
-                body.push(compileExpressionStatement(expression.expression));
+                let generatedName = null;
+                if (index < blockCount - 1) {
+                    generatedName = generateBlockName();
+                }
+
+                body[nextName] = compileExpressionStatement(expression.expression, parent=parentName, next=generatedName);
+
+                parentName = nextName; // Set parent name to block's name
+                nextName = generatedName;
             default:
                 console.log(expression.type);
         }
-    });
+    };
 
     return body;
 }
@@ -183,7 +200,12 @@ function compileFunctionDeclaration(topExpression) {
 function compileBlock(expression) {
     switch (expression.type) {
         case "ExpressionStatement":
-            return compileExpressionStatement(expression.expression);
+            let object = {};
+
+            let blockName = generateBlockName();
+            object[blockName] = compileExpressionStatement(expression.expression);
+            
+            return object;
         case "FunctionDeclaration":
             return compileFunctionDeclaration(expression);
         default:
@@ -208,12 +230,10 @@ function compileSprite(sprite) {
 
     parsedCodeBody.forEach(block => {
         let compiledBlocks = compileBlock(block);
-        if (compiledBlocks.constructor.name == "Object") compiledBlocks = [compiledBlocks];
-
-        compiledBlocks.forEach(block => {
-            let blockID = Math.round(Math.random() * 1e15).toString();
-            blockList[blockID] = block;
-        });
+        blockList = {
+            ...blockList,
+            ...compiledBlocks
+        };
     });
 
     console.log(blockList);
