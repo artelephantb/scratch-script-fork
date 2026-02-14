@@ -29,6 +29,8 @@ button {
     border: none;
     border-radius: 5px;
 
+    cursor: pointer;
+
     transition: all 80ms;
 }
 
@@ -45,8 +47,6 @@ button:hover {
 
 .tab:hover {
     background-color: var(--color-brand-highlight-dark);
-    color: white;
-
     border-radius: 15px 15px 0 0;
 }
 
@@ -110,6 +110,7 @@ button:hover {
 #sound-editor {
     width: 100%;
     height: calc(var(--height) - 0px);
+    border-top: 1px solid black;
     /* border-right: 1px solid black; */
 }
 
@@ -206,6 +207,10 @@ button:hover {
     height: 40px;
 }
 
+.btn {
+    cursor: pointer;
+}
+
 .btn:hover {
     filter: brightness(80%);
     transition: all 80ms;
@@ -244,7 +249,7 @@ pre[class="blocks"] {
 #editor-container {
     display: flex;
     flex-wrap: wrap;
-    width: 100%;
+    width: 70%;
 }
 
 #costume-list,
