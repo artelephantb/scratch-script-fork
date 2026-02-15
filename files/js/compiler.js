@@ -1,4 +1,10 @@
-function generateBlockName() {
+var compiledBlocks;
+
+var parentID = null;
+var nextID = generateBlockID();
+
+
+function generateBlockID() {
     return Math.round(Math.random() * 1e15).toString();
 }
 
@@ -87,8 +93,8 @@ function getSounds(sprite) {
     return createdSoundList;
 }
 
-function compileError(err) {
-    throw { name: "CompileError", message: `CompileError on line ${'${lineNum}'} in sprite ${getSpriteName(spriteBeingCompiled, true)} — ${err}` };
+function compileError(err, lineNum=undefined) {
+    throw { name: "CompileError", message: `CompileError on line ${lineNum} in sprite ${getSpriteName(spriteBeingCompiled, true)} — ${err}` };
 }
 
 function clearVariablesAndLists(keepGlobal) {
@@ -109,7 +115,33 @@ function clearVariablesAndLists(keepGlobal) {
     }
 }
 
-function compileCallExpression(funcName, parameters, parent=null, next=null, x=0, y=0) {
+function addBlock(opcode, inputs, x=0, y=0) {
+    randomID = generateBlockID();
+
+    compiledBlocks[nextID] = {
+        opcode: opcode,
+        parent: parentID,
+        next: randomID,
+        inputs: inputs,
+        fields: {},
+        shadow: false,
+        topLevel: parentID == null,
+        x: x,
+        y: y
+    };
+
+    parentID = nextID;
+    nextID = randomID;
+
+    return randomID;
+}
+
+function resetIDs() {
+    parentID = null;
+    nextID = generateBlockID();
+}
+
+function compileCallExpression(funcName, parameters, x=0, y=0) {
     let blockMapData = blockData[funcName];
     if (!blockMapData) compileError(`There is no function called '${funcName}'`);
 
@@ -119,10 +151,10 @@ function compileCallExpression(funcName, parameters, parent=null, next=null, x=0
         let argumentType
         switch (typeof(argument.value)) {
             case "string":
-                argumentType = 10
+                argumentType = 10;
                 break;
             case "number":
-                argumentType = 4
+                argumentType = 4;
                 break;
             default:
                 compileError(`Invalid argument: '${argument.value}'`)
@@ -137,25 +169,14 @@ function compileCallExpression(funcName, parameters, parent=null, next=null, x=0
         ];
     }
 
-    let block = {
-        opcode: blockMapData.opcode,
-        next: next,
-        parent: parent,
-        inputs: inputs,
-        fields: {},
-        shadow: false,
-        topLevel: parent == null,
-        x: x,
-        y: y
-    };
-
-    return block;
+    addBlock(blockMapData.opcode, inputs, x, y);
 }
 
-function compileExpressionStatement(innerExpression, parent=null, next=null, x=0, y=0) {
+function compileExpressionStatement(innerExpression, x=0, y=0) {
     switch (innerExpression.type) {
         case "CallExpression":
-            return compileCallExpression(innerExpression.callee.name, innerExpression.arguments.entries(), parent=parent, next=next, x=x, y=y);
+            compileCallExpression(innerExpression.callee.name, innerExpression.arguments.entries(), x=x, y=y);
+            break;
         default:
             console.log(innerExpression.type);
     }
@@ -164,50 +185,32 @@ function compileExpressionStatement(innerExpression, parent=null, next=null, x=0
 function compileFunctionDeclaration(topExpression) {
     if (!blockData[topExpression.id.name]) {
         console.log("Custom block found");
-        return {};
+        return;
     }
 
-    let body = {};
-    console.log(topExpression)
+    compileCallExpression(topExpression.id.name, topExpression.params.entries());
 
-    let parentName = generateBlockName();
-    let nextName = generateBlockName();
-
-    body[parentName] = compileCallExpression(topExpression.id.name, topExpression.params.entries(), parent=null, next=nextName);
-
-    let blockCount = topExpression.body.body.length;
-
-    for (let [index, expression] of topExpression.body.body.entries()) {
+    topExpression.body.body.forEach(expression => {
         switch (expression.type) {
             case "ExpressionStatement":
-                let generatedName = null;
-                if (index < blockCount - 1) {
-                    generatedName = generateBlockName();
-                }
-
-                body[nextName] = compileExpressionStatement(expression.expression, parent=parentName, next=generatedName);
-
-                parentName = nextName; // Set parent name to block's name
-                nextName = generatedName;
+                compileExpressionStatement(expression.expression);
+                break;
             default:
                 console.log(expression.type);
         }
-    };
-
-    return body;
+    });
 }
 
 function compileBlock(expression) {
+    resetIDs();
+
     switch (expression.type) {
         case "ExpressionStatement":
-            let object = {};
-
-            let blockName = generateBlockName();
-            object[blockName] = compileExpressionStatement(expression.expression);
-            
-            return object;
+            compileExpressionStatement(expression.expression);
+            break;
         case "FunctionDeclaration":
-            return compileFunctionDeclaration(expression);
+            compileFunctionDeclaration(expression);
+            break;
         default:
             console.log(expression);
     }
@@ -215,7 +218,7 @@ function compileBlock(expression) {
 
 function compileSprite(sprite) {
     spriteBeingCompiled = sprite;
-    blockList = {}
+    compiledBlocks = {};
 
     let spriteCode = codeList[sprite];
 
@@ -229,14 +232,10 @@ function compileSprite(sprite) {
     let parsedCodeBody = parsedCode.body;
 
     parsedCodeBody.forEach(block => {
-        let compiledBlocks = compileBlock(block);
-        blockList = {
-            ...blockList,
-            ...compiledBlocks
-        };
+        compileBlock(block);
     });
 
-    console.log(blockList);
+    console.log(compiledBlocks);
 
     blockID += 2;
     let newSprite = {
@@ -244,7 +243,7 @@ function compileSprite(sprite) {
         name: sprite == "stage" ? "Stage" : Base64.decode(sprite),
         variables: getVariables(),
         lists: getLists(),
-        blocks: blockList,
+        blocks: compiledBlocks,
         comments: {},
         currentCostume: 0,
         broadcasts: {},
@@ -269,6 +268,7 @@ function compileSprite(sprite) {
         delete newSprite.x;
         delete newSprite.y;
     }
+
     return newSprite;
 }
 
